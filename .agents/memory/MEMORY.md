@@ -1,0 +1,2 @@
+- [Orval naming collision rules](orval-naming-rules.md) — AiChatResponse collided; response component schemas must NOT be named <OperationIdPascal>Response
+- [Wouter v3 Link rendering](wouter-link.md) — Link renders directly as <a>; wrapping in <a> causes nested anchor errors

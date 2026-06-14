@@ -3,13 +3,28 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Xeno Mini CRM API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: customers
+    description: Customer operations
+  - name: campaigns
+    description: Campaign operations
+  - name: segments
+    description: Segment operations
+  - name: ai
+    description: AI operations
+  - name: seed
+    description: Seed operations
+  - name: stats
+    description: Stats operations
+  - name: receipts
+    description: Delivery receipt operations
+
 paths:
   /healthz:
     get:
@@ -24,6 +39,279 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List all customers
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: minSpent
+          in: query
+          schema:
+            type: number
+        - name: maxSpent
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+
+  /customers/bulk:
+    post:
+      operationId: bulkCreateCustomers
+      tags: [customers]
+      summary: Bulk insert customers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerBulkInput"
+      responses:
+        "201":
+          description: Customers inserted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkResult"
+
+  /orders/bulk:
+    post:
+      operationId: bulkCreateOrders
+      tags: [customers]
+      summary: Bulk insert orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderBulkInput"
+      responses:
+        "201":
+          description: Orders inserted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkResult"
+
+  /stats/overview:
+    get:
+      operationId: getStatsOverview
+      tags: [stats]
+      summary: Get dashboard overview stats
+      responses:
+        "200":
+          description: Overview stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsOverview"
+
+  /segments/preview:
+    post:
+      operationId: previewSegment
+      tags: [segments]
+      summary: Preview segment query results
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SegmentPreviewInput"
+      responses:
+        "200":
+          description: Segment preview results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SegmentPreview"
+        "400":
+          description: Invalid query
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns:
+    get:
+      operationId: listCampaigns
+      tags: [campaigns]
+      summary: List all campaigns
+      responses:
+        "200":
+          description: List of campaigns with stats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CampaignWithStats"
+    post:
+      operationId: createCampaign
+      tags: [campaigns]
+      summary: Create a campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignInput"
+      responses:
+        "201":
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /campaigns/{id}:
+    get:
+      operationId: getCampaign
+      tags: [campaigns]
+      summary: Get a campaign by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignWithStats"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/{id}/send:
+    post:
+      operationId: sendCampaign
+      tags: [campaigns]
+      summary: Send a campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign send initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendResult"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/{id}/stats:
+    get:
+      operationId: getCampaignStats
+      tags: [campaigns]
+      summary: Get campaign delivery stats
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignStats"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /receipts:
+    post:
+      operationId: createReceipt
+      tags: [receipts]
+      summary: Update communication delivery status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReceiptInput"
+      responses:
+        "200":
+          description: Receipt processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptResult"
+
+  /ai/chat:
+    post:
+      operationId: aiChat
+      tags: [ai]
+      summary: Chat with AI CRM assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiChatInput"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiReply"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /seed:
+    post:
+      operationId: seedDatabase
+      tags: [seed]
+      summary: Seed database with sample Indian retail data
+      responses:
+        "200":
+          description: Seed completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeedResult"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +322,288 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    Customer:
+      type: object
+      required: [id, name, email, phone, city, totalSpent, visitCount, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        city:
+          type: string
+        totalSpent:
+          type: number
+        visitCount:
+          type: integer
+        lastPurchaseDate:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    CustomerBulkInput:
+      type: object
+      required: [customers]
+      properties:
+        customers:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomerInput"
+
+    CustomerInput:
+      type: object
+      required: [name, email, phone, city]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        city:
+          type: string
+        totalSpent:
+          type: number
+        visitCount:
+          type: integer
+        lastPurchaseDate:
+          type: ["string", "null"]
+
+    Order:
+      type: object
+      required: [id, customerId, amount, productName, status, createdAt]
+      properties:
+        id:
+          type: integer
+        customerId:
+          type: integer
+        amount:
+          type: number
+        productName:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+
+    OrderBulkInput:
+      type: object
+      required: [orders]
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderInput"
+
+    OrderInput:
+      type: object
+      required: [customerId, amount, productName, status]
+      properties:
+        customerId:
+          type: integer
+        amount:
+          type: number
+        productName:
+          type: string
+        status:
+          type: string
+
+    BulkResult:
+      type: object
+      required: [inserted]
+      properties:
+        inserted:
+          type: integer
+
+    StatsOverview:
+      type: object
+      required: [totalCustomers, totalOrders, totalRevenue, totalCampaigns, deliveryRate]
+      properties:
+        totalCustomers:
+          type: integer
+        totalOrders:
+          type: integer
+        totalRevenue:
+          type: number
+        totalCampaigns:
+          type: integer
+        deliveryRate:
+          type: number
+        recentCampaigns:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampaignWithStats"
+
+    SegmentPreviewInput:
+      type: object
+      required: [segmentQuery]
+      properties:
+        segmentQuery:
+          type: string
+
+    SegmentPreview:
+      type: object
+      required: [count, sample]
+      properties:
+        count:
+          type: integer
+        sample:
+          type: array
+          items:
+            $ref: "#/components/schemas/Customer"
+
+    Campaign:
+      type: object
+      required: [id, name, segmentQuery, message, channel, status, createdAt, sentByAi]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        segmentQuery:
+          type: string
+        message:
+          type: string
+        channel:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+        sentByAi:
+          type: boolean
+
+    CampaignInput:
+      type: object
+      required: [name, segmentQuery, message, channel]
+      properties:
+        name:
+          type: string
+        segmentQuery:
+          type: string
+        message:
+          type: string
+        channel:
+          type: string
+        sentByAi:
+          type: boolean
+
+    CampaignStats:
+      type: object
+      required: [campaignId, totalSent, delivered, failed, opened, clicked]
+      properties:
+        campaignId:
+          type: integer
+        totalSent:
+          type: integer
+        delivered:
+          type: integer
+        failed:
+          type: integer
+        opened:
+          type: integer
+        clicked:
+          type: integer
+
+    CampaignWithStats:
+      type: object
+      required: [id, name, segmentQuery, message, channel, status, createdAt, sentByAi]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        segmentQuery:
+          type: string
+        message:
+          type: string
+        channel:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+        sentByAi:
+          type: boolean
+        stats:
+          $ref: "#/components/schemas/CampaignStats"
+
+    SendResult:
+      type: object
+      required: [message, queued]
+      properties:
+        message:
+          type: string
+        queued:
+          type: integer
+
+    ReceiptInput:
+      type: object
+      required: [communicationId, status]
+      properties:
+        communicationId:
+          type: integer
+        status:
+          type: string
+
+    ReceiptResult:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
+
+    AiChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+        content:
+          type: string
+
+    AiChatInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiChatMessage"
+
+    AiReply:
+      type: object
+      required: [reply]
+      properties:
+        reply:
+          type: string
+        action:
+          type: ["string", "null"]
+        segmentQuery:
+          type: ["string", "null"]
+        messageDraft:
+          type: ["string", "null"]
+        channel:
+          type: ["string", "null"]
+
+    SeedResult:
+      type: object
+      required: [customers, orders]
+      properties:
+        customers:
+          type: integer
+        orders:
+          type: integer
